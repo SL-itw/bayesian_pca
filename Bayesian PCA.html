@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -89,10 +123,243 @@ Note
 <p>For each subject <span class="math inline">\(i\)</span>,</p>
 <p><span class="math display">\[x_i=\beta z_i+\mu_p\]</span></p>
 <p>or more descriptively,</p>
-<p><span class="math display">\[ \begin{bmatrix}x_1\\x_2\\.\\.\\x_n  \end{bmatrix} =\begin{bmatrix}B_{11}\\B_{21}\\.\\.\\B_{p1} \end{bmatrix}z_1+\begin{bmatrix}B_{12}\\B_{22}\\.\\.\\B_{p2} \end{bmatrix}z_2+...+\begin{bmatrix}B_{1n}\\B_{2n}\\.\\.\\B_{pn} \end{bmatrix}z_n+\begin{bmatrix}\mu_1\\\mu_2\\.\\.\\\mu_p  \end{bmatrix} \]</span> In other words, for However, the probabilistic component comes in when we offset the above prodect of PC’s and their standard deviations by the means of the <span class="math display">\[x_i=\beta z_i+\mu_p+\epsilon_i, \epsilon\sim N(\bf0,\sigma^2\bf I_p) \]</span></p>
+<p><span class="math display">\[ \begin{bmatrix}x_1\\x_2\\.\\.\\x_n  \end{bmatrix} =\begin{bmatrix}B_{11}\\B_{21}\\.\\.\\B_{p1} \end{bmatrix}z_1+\begin{bmatrix}B_{12}\\B_{22}\\.\\.\\B_{p2} \end{bmatrix}z_2+...+\begin{bmatrix}B_{1n}\\B_{2n}\\.\\.\\B_{pn} \end{bmatrix}z_n+\begin{bmatrix}\mu_1\\\mu_2\\.\\.\\\mu_p  \end{bmatrix} \]</span></p>
+<p>In other words, for However, the probabilistic component comes in when we offset the above prodect of PC’s and their standard deviations by the means of the</p>
+<p><span class="math display">\[x_i=\beta z_i+\mu_p+\epsilon_i, \epsilon\sim N(\bf0,\sigma^2\bf I_p) \]</span></p>
 <p>or more descriptively,</p>
 <p><span class="math display">\[ \begin{bmatrix}x_1\\x_2\\.\\.\\x_n  \end{bmatrix} =\begin{bmatrix}B_{11}\\B_{21}\\.\\.\\B_{p1} \end{bmatrix}z_1+\begin{bmatrix}B_{12}\\B_{22}\\.\\.\\B_{p2} \end{bmatrix}z_2+...+\begin{bmatrix}B_{1n}\\B_{2n}\\.\\.\\B_{pn} \end{bmatrix}z_n+\begin{bmatrix}\mu_1\\\mu_2\\.\\.\\\mu_p  \end{bmatrix}+\begin{bmatrix} \epsilon_1\\\epsilon_2\\.\\.\\ \epsilon_n  \end{bmatrix} \]</span></p>
 <p>Going forward, I will explain the method assuming <span class="math inline">\(q = 1\)</span> and <span class="math inline">\(q &lt; p\)</span>.</p>
+</section>
+<section id="data-simulation" class="level3">
+<h3 class="anchored" data-anchor-id="data-simulation">Data Simulation</h3>
+<section id="packages-used" class="level4">
+<h4 class="anchored" data-anchor-id="packages-used">packages used</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"tidyverse"</span>,<span class="st">"patchwork"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">invisible</span>(<span class="fu">lapply</span>(packages, library, <span class="at">character.only =</span> T))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>In order to force an order on the score, things means that … it’s no longer really standard normal prior … but it’s an order aspect. But ordering is necesary to keep track of the z’s.</p>
+<p>Running the stand code:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="st">`</span><span class="at">%&gt;%</span><span class="st">`</span> <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="st">`</span><span class="at">%&gt;%</span><span class="st">`</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>a<span class="ot">=</span> <span class="dv">1</span> <span class="co"># alpha for prior on the PC's</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>b<span class="ot">=</span> <span class="dv">1</span> <span class="co"># beta for the prior on PC's</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">100</span> <span class="co"># number of subjects</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="co"># number of covariates</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="co"># number from reduced dim</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>alpha <span class="ot">=</span> <span class="fu">rgamma</span>(<span class="dv">1</span>,<span class="at">shape =</span>a,<span class="at">rate =</span> b) <span class="co"># hyper prior for PC's</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>B <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(p<span class="sc">*</span>q,<span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> alpha), <span class="at">ncol =</span> q) <span class="co"># PC Vectors</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>log_z <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(q, <span class="at">sd =</span> .<span class="dv">15</span>)<span class="co">#PC scores</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">exp</span>(log_z) <span class="sc">%&gt;%</span> <span class="fu">sort</span>(<span class="at">decreasing =</span> F)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="at">nrow =</span> N, <span class="at">ncol =</span> p)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>p) {</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  x[,i] <span class="ot">=</span> <span class="fu">sum</span>(B[i,]<span class="sc">*</span>z) <span class="sc">+</span> <span class="fu">rnorm</span>(N,<span class="dv">0</span>,<span class="dv">1</span>)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="model-1-simple-ppca-q1" class="level3">
+<h3 class="anchored" data-anchor-id="model-1-simple-ppca-q1">Model 1 (simple PPCA, q=1)</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>stan_list <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">N =</span> N, </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">a =</span> a, </span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">b =</span> b,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> x,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">p =</span> p,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">q=</span> q</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>mod_file <span class="ot">&lt;-</span> rstan<span class="sc">::</span><span class="fu">stan_model</span>(<span class="st">"bayes_stan.stan"</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> rstan<span class="sc">::</span><span class="fu">vb</span>(mod_file,</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>                   <span class="at">data =</span> stan_list<span class="co">#,</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>                  <span class="co"># pars = c("preds","B","z")</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>                   </span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>                   )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Chain 1: ------------------------------------------------------------
+Chain 1: EXPERIMENTAL ALGORITHM:
+Chain 1:   This procedure has not been thoroughly tested and may be unstable
+Chain 1:   or buggy. The interface is subject to change.
+Chain 1: ------------------------------------------------------------
+Chain 1: 
+Chain 1: 
+Chain 1: 
+Chain 1: Gradient evaluation took 4.5e-05 seconds
+Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.45 seconds.
+Chain 1: Adjust your expectations accordingly!
+Chain 1: 
+Chain 1: 
+Chain 1: Begin eta adaptation.
+Chain 1: Iteration:   1 / 250 [  0%]  (Adaptation)
+Chain 1: Iteration:  50 / 250 [ 20%]  (Adaptation)
+Chain 1: Iteration: 100 / 250 [ 40%]  (Adaptation)
+Chain 1: Iteration: 150 / 250 [ 60%]  (Adaptation)
+Chain 1: Iteration: 200 / 250 [ 80%]  (Adaptation)
+Chain 1: Success! Found best value [eta = 1] earlier than expected.
+Chain 1: 
+Chain 1: Begin stochastic gradient ascent.
+Chain 1:   iter             ELBO   delta_ELBO_mean   delta_ELBO_med   notes 
+Chain 1:    100         -747.875             1.000            1.000
+Chain 1:    200         -652.578             0.573            1.000
+Chain 1:    300         -635.781             0.391            0.146
+Chain 1:    400         -617.637             0.300            0.146
+Chain 1:    500         -605.058             0.245            0.029
+Chain 1:    600         -593.832             0.207            0.029
+Chain 1:    700         -586.343             0.179            0.026
+Chain 1:    800         -575.386             0.159            0.026
+Chain 1:    900         -566.164             0.143            0.021
+Chain 1:   1000         -558.537             0.130            0.021
+Chain 1:   1100         -551.325             0.032            0.019
+Chain 1:   1200         -542.231             0.019            0.019
+Chain 1:   1300         -536.738             0.017            0.017
+Chain 1:   1400         -529.006             0.016            0.016
+Chain 1:   1500         -522.453             0.015            0.015
+Chain 1:   1600         -516.514             0.014            0.014
+Chain 1:   1700         -509.976             0.014            0.014
+Chain 1:   1800         -503.967             0.013            0.013
+Chain 1:   1900         -498.835             0.013            0.013
+Chain 1:   2000         -491.503             0.013            0.013
+Chain 1:   2100         -486.939             0.012            0.013
+Chain 1:   2200         -481.288             0.012            0.012
+Chain 1:   2300         -475.712             0.012            0.012
+Chain 1:   2400         -470.598             0.012            0.012
+Chain 1:   2500         -465.316             0.012            0.012
+Chain 1:   2600         -460.991             0.011            0.012
+Chain 1:   2700         -456.748             0.011            0.011
+Chain 1:   2800         -451.281             0.011            0.011
+Chain 1:   2900         -447.806             0.011            0.011
+Chain 1:   3000         -443.338             0.010            0.011
+Chain 1:   3100         -437.240             0.011            0.011
+Chain 1:   3200         -433.501             0.011            0.011
+Chain 1:   3300         -427.542             0.011            0.011
+Chain 1:   3400         -424.509             0.010            0.010
+Chain 1:   3500         -420.323             0.010            0.010   MEDIAN ELBO CONVERGED
+Chain 1: 
+Chain 1: Drawing a sample of size 1000 from the approximate posterior... 
+Chain 1: COMPLETED.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>output_tab <span class="ot">&lt;-</span> rstan<span class="sc">::</span><span class="fu">summary</span>(fit) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rownames_to_column</span>()  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Comparing x to the predicted values</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pred matrix</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>x_pred <span class="ot">&lt;-</span>  </span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(output_tab<span class="sc">$</span>summary.mean[<span class="fu">grepl</span>(<span class="fu">c</span>(<span class="st">"preds"</span>),output_tab<span class="sc">$</span>rowname)][<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>],</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        output_tab<span class="sc">$</span>summary.mean[<span class="fu">grepl</span>(<span class="fu">c</span>(<span class="st">"preds"</span>),output_tab<span class="sc">$</span>rowname)][<span class="dv">101</span><span class="sc">:</span><span class="dv">200</span>],</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>        output_tab<span class="sc">$</span>summary.mean[<span class="fu">grepl</span>(<span class="fu">c</span>(<span class="st">"preds"</span>),output_tab<span class="sc">$</span>rowname)][<span class="dv">201</span><span class="sc">:</span><span class="dv">300</span>],</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        output_tab<span class="sc">$</span>summary.mean[<span class="fu">grepl</span>(<span class="fu">c</span>(<span class="st">"preds"</span>),output_tab<span class="sc">$</span>rowname)][<span class="dv">301</span><span class="sc">:</span><span class="dv">400</span>],</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        output_tab<span class="sc">$</span>summary.mean[<span class="fu">grepl</span>(<span class="fu">c</span>(<span class="st">"preds"</span>),output_tab<span class="sc">$</span>rowname)][<span class="dv">401</span><span class="sc">:</span><span class="dv">500</span>])</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co"># creating combine variables</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>x_comp <span class="ot">&lt;-</span> <span class="fu">full_join</span>(</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>x <span class="sc">%&gt;%</span> </span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="st">"actual"</span>)<span class="co"># %&gt;% </span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="co">#mutate_at(vars(V1:V5),~scale(.,scale = T))</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  ,</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>x_pred <span class="sc">%&gt;%</span> </span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="st">"predicted"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    V1<span class="sc">:</span>V5,</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="st">"covariates"</span>,</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"observations"</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Joining with `by = join_by(V1, V2, V3, V4, V5, name)`</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot of distribution </span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>x_comp <span class="sc">%&gt;%</span> </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a> <span class="co"># filter(name == "actual") %&gt;% </span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a> <span class="co"># filter(name == "predicted") %&gt;% </span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> observations, <span class="at">fill =</span> name))<span class="sc">+</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()<span class="sc">+</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>covariates)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="Bayesian-PCA_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># table of means</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  x_comp <span class="sc">%&gt;%</span> </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(name, covariates) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">mean =</span> <span class="fu">mean</span>(observations)) <span class="sc">%&gt;%</span> knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'name'. You can override using the
+`.groups` argument.</code></pre>
+</div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">name</th>
+<th style="text-align: left;">covariates</th>
+<th style="text-align: right;">mean</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">actual</td>
+<td style="text-align: left;">V1</td>
+<td style="text-align: right;">1.2316622</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">actual</td>
+<td style="text-align: left;">V2</td>
+<td style="text-align: right;">-0.6322377</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">actual</td>
+<td style="text-align: left;">V3</td>
+<td style="text-align: right;">-0.2114699</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">actual</td>
+<td style="text-align: left;">V4</td>
+<td style="text-align: right;">-0.9195666</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">actual</td>
+<td style="text-align: left;">V5</td>
+<td style="text-align: right;">-0.2371204</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">predicted</td>
+<td style="text-align: left;">V1</td>
+<td style="text-align: right;">0.0002095</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">predicted</td>
+<td style="text-align: left;">V2</td>
+<td style="text-align: right;">0.0026161</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">predicted</td>
+<td style="text-align: left;">V3</td>
+<td style="text-align: right;">-0.0073634</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">predicted</td>
+<td style="text-align: left;">V4</td>
+<td style="text-align: right;">0.0025938</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">predicted</td>
+<td style="text-align: left;">V5</td>
+<td style="text-align: right;">-0.0010384</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </section>
 </section>
 

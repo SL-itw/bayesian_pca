@@ -19,7 +19,7 @@ Probabilistic PCA is similar in nature if not identical to factor anlaysis. It e
 Let there be a design matrix $X$ that is $n$ by $p$ dimensional where $i$ indexes $n$ subjects and $c$ indexes $p$ covariates. Let $\beta$ denote a $p$ by $q$ matrix of principal components (PC) vectors $q<p$ which is a set of principal components less than $p$. In the PCA and social science literature, $q =1$ is usually used to indicate the PC that explains the most variance in the data. That is, if we ordered the $q$ PC's by variance explained,indexing them by $j$, then for $q =3$, $j=1>j=2>j=3$ and if $q = p$ then all the variance of the data would be explain, thus no data reduction. Lastly, another aspect needed to map the projected observations back to the actual observations are the scores associated with each PC that is shared among all subjects. Let $z_i$ be a $q$ dimensional vector for each subject $i$.
 
 ::: callout-note
-Note again that all subjects share the same scores but all have different PC loading values. Also, scores represent the standard deviation of the respected PCA. So once again, each subject gets a value along all the PC's and they are multiplied to the standard deviation of the PC as.
+Note again that all subjects share the same scores but all have different PC loading values. Also, scores represent the standard deviation/rotations of the respected PC. So once again, each subject gets a value along all the PC's and they are multiplied to the score with the mean of the covarites as.
 :::
 
 For each subject $i$,
@@ -30,27 +30,40 @@ or more descriptively,
 
 $$ \begin{bmatrix}x_1\\x_2\\.\\.\\x_n  \end{bmatrix} =\begin{bmatrix}B_{11}\\B_{21}\\.\\.\\B_{p1} \end{bmatrix}z_1+\begin{bmatrix}B_{12}\\B_{22}\\.\\.\\B_{p2} \end{bmatrix}z_2+...+\begin{bmatrix}B_{1n}\\B_{2n}\\.\\.\\B_{pn} \end{bmatrix}z_n+\begin{bmatrix}\mu_1\\\mu_2\\.\\.\\\mu_p  \end{bmatrix} $$
 
-In other words, for However, the probabilistic component comes in when we offset the above prodect of PC's and their standard deviations by the means of the
+However, assuming the covariates are standardized z scores, as is done in standard practice before deriving the PC's, we can omit the mean variable of the covariates given they are all zero: 
 
-$$x_i=\beta z_i+\mu_p+\epsilon_i, \epsilon\sim N(\bf0,\sigma^2\bf I_p) $$
+$$x_i=\beta z_i $$ 
+
+However, the probabilistic component comes in when we offset the above product of PC's and their scores with the mean of the covariates some noise. 
+
+$$x_i=\beta z_i+\mu_p+\epsilon_i, \epsilon\sim N(\bf0,\sigma^2\bf I_p)  $$
 
 or more descriptively,
 
-$$ \begin{bmatrix}x_1\\x_2\\.\\.\\x_n  \end{bmatrix} =\begin{bmatrix}B_{11}\\B_{21}\\.\\.\\B_{p1} \end{bmatrix}z_1+\begin{bmatrix}B_{12}\\B_{22}\\.\\.\\B_{p2} \end{bmatrix}z_2+...+\begin{bmatrix}B_{1n}\\B_{2n}\\.\\.\\B_{pn} \end{bmatrix}z_n+\begin{bmatrix}\mu_1\\\mu_2\\.\\.\\\mu_p  \end{bmatrix}+\begin{bmatrix} \epsilon_1\\\epsilon_2\\.\\.\\ \epsilon_n  \end{bmatrix} $$
+$$ \begin{bmatrix}x_1\\x_2\\.\\.\\x_n  \end{bmatrix} =\begin{bmatrix}B_{11}\\B_{21}\\.\\.\\B_{p1} \end{bmatrix}z_1+\begin{bmatrix}B_{12}\\B_{22}\\.\\.\\B_{p2} \end{bmatrix}z_2+...+\begin{bmatrix}B_{1q}\\B_{2q}\\.\\.\\B_{pq} \end{bmatrix}z_q+\begin{bmatrix}\mu_1\\\mu_2\\.\\.\\\mu_p  \end{bmatrix}+\begin{bmatrix} \epsilon_1\\\epsilon_2\\.\\.\\ \epsilon_n  \end{bmatrix} $$
 
 Going forward, I will explain the method assuming $q = 1$ and $q < p$.
 
-
 ### Data Simulation
 
-In order to force an order on the score, things means that ... it's no longer really standard normal prior ... but it's an order aspect. But ordering is necesary to keep track of the z's. 
+#### packages used
+
+```{r}
+#| label: load-packages
+#| message: false
+packages <- c("tidyverse","patchwork","rstan")
+invisible(lapply(packages, library, character.only = T))
+
+
+```
+
+Using This ordering things means that ... it's no longer really standard normal prior ... but it's an order aspect. But ordering is necesary to keep track of the z's.
 
 Running the stand code:
 
 ```{r}
-#| messsage = false
-#| warning = false
-#| eval = false
+#| message: false
+#| warning: false
   
 `%>%` <- dplyr::`%>%`
 a= 1 # alpha for prior on the PC's
@@ -70,11 +83,11 @@ for (i in 1:p) {
 }
 ```
 
-
 ### Model 1 (simple PPCA, q=1)
 
 ```{r}
-#| eval = false
+#| message: false
+#| warning: false
 
 stan_list <- list(
   N = N, 
@@ -93,7 +106,53 @@ fit <- rstan::vb(mod_file,
                    
                    )
 
-rstan::summary(fit) %>% 
-  tibble()
+output_tab <- rstan::summary(fit) %>% 
+  data.frame() %>%
+  rownames_to_column()  
+
 ```
 
+Comparing x to the predicted values
+
+```{r}
+
+
+# pred matrix
+
+x_pred <-  
+  cbind(output_tab$summary.mean[grepl(c("preds"),output_tab$rowname)][1:100],
+        output_tab$summary.mean[grepl(c("preds"),output_tab$rowname)][101:200],
+        output_tab$summary.mean[grepl(c("preds"),output_tab$rowname)][201:300],
+        output_tab$summary.mean[grepl(c("preds"),output_tab$rowname)][301:400],
+        output_tab$summary.mean[grepl(c("preds"),output_tab$rowname)][401:500])
+
+# creating combine variables
+x_comp <- full_join(
+x %>% 
+  as.data.frame() %>% 
+  mutate(name = "actual")# %>% 
+  #mutate_at(vars(V1:V5),~scale(.,scale = T))
+  ,
+x_pred %>% 
+  as.data.frame() %>% 
+  mutate(name = "predicted")) %>% 
+  pivot_longer(
+    V1:V5,
+    names_to = "covariates",
+    values_to = "observations"
+  )
+
+# plot of distribution 
+x_comp %>% 
+ # filter(name == "actual") %>% 
+ # filter(name == "predicted") %>% 
+  ggplot(aes(x = observations, fill = name))+
+  geom_histogram()+
+  facet_wrap(~covariates)
+
+# table of means
+  x_comp %>% 
+    group_by(name, covariates) %>% 
+    summarize(mean = mean(observations)) %>% knitr::kable()
+
+```
