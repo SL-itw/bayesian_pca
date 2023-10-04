@@ -40,8 +40,7 @@ $$ \begin{bmatrix}x_1\\x_2\\.\\.\\x_n  \end{bmatrix} =\begin{bmatrix}B_{11}\\B_{
 
 Going forward, I will explain the method assuming $q = 1$ and $q < p$.
 
-
-In order to force an order on the score, things means that ... it's no longer really standard normal prior ... but it's an order aspect. But ordering is necesary to keep track of the z's. 
+In order to force an order on the score, things means that ... it's no longer really standard normal prior ... but it's an order aspect. But ordering is necesary to keep track of the z's.
 
 Running the stand code:
 
@@ -81,4 +80,3 @@ fit <- rstan::vb(mod_file,
                    
                    )
 ```
-
