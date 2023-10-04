@@ -41,12 +41,17 @@ $$ \begin{bmatrix}x_1\\x_2\\.\\.\\x_n  \end{bmatrix} =\begin{bmatrix}B_{11}\\B_{
 Going forward, I will explain the method assuming $q = 1$ and $q < p$.
 
 
+### Data Simulation
+
 In order to force an order on the score, things means that ... it's no longer really standard normal prior ... but it's an order aspect. But ordering is necesary to keep track of the z's. 
 
 Running the stand code:
 
 ```{r}
-
+#| messsage = false
+#| warning = false
+#| eval = false
+  
 `%>%` <- dplyr::`%>%`
 a= 1 # alpha for prior on the PC's
 b= 1 # beta for the prior on PC's
@@ -63,6 +68,13 @@ for (i in 1:p) {
   x[,i] = sum(B[i,]*z) + rnorm(N,0,1)
   
 }
+```
+
+
+### Model 1 (simple PPCA, q=1)
+
+```{r}
+#| eval = false
 
 stan_list <- list(
   N = N, 
@@ -80,5 +92,8 @@ fit <- rstan::vb(mod_file,
                   # pars = c("preds","B","z")
                    
                    )
+
+rstan::summary(fit) %>% 
+  tibble()
 ```
 
