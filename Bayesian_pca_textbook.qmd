@@ -24,7 +24,7 @@ Probabilistic PCA is similar in nature if not identical to factor anlaysis. It e
 
 Let there be a design matrix $X$ that is $n$ by $p$ dimensional where $i$ indexes $n$ subjects and $c$ indexes $p$ covariates. Let $\beta$ denote a $p$ by $q$ matrix of principal components (PC) vectors $q<p$ which is a set of principal components less than $p$. In the PCA and social science literature, $q =1$ is usually used to indicate the PC that explains the most variance in the data. That is, if we ordered the $q$ PC's by variance explained,indexing them by $j$, then for $q =3$, $j=1>j=2>j=3$ and if $q = p$ then all the variance of the data would be explain, thus no data reduction. Lastly, another aspect needed to map the projected observations back to the actual observations are the scores associated with each PC that is shared among all subjects. Let $z_i$ be a $q$ dimensional vector for each subject $i$.
 
-::: callout-note
+:::{.callout-note}
 Note again that all subjects share the same scores but all have different PC loading values. Also, scores represent the standard deviation/rotations of the respected PC. So once again, each subject gets a value along all the PC's and they are multiplied to the score with the mean of the covarites as.
 :::
 
@@ -36,11 +36,11 @@ or more descriptively,
 
 $$ \begin{bmatrix}x_1\\x_2\\.\\.\\x_n  \end{bmatrix} =\begin{bmatrix}B_{11}\\B_{21}\\.\\.\\B_{p1} \end{bmatrix}z_1+\begin{bmatrix}B_{12}\\B_{22}\\.\\.\\B_{p2} \end{bmatrix}z_2+...+\begin{bmatrix}B_{1n}\\B_{2n}\\.\\.\\B_{pn} \end{bmatrix}z_n+\begin{bmatrix}\mu_1\\\mu_2\\.\\.\\\mu_p  \end{bmatrix} $$
 
-However, assuming the covariates are standardized z scores, as is done in standard practice before deriving the PC's, we can omit the mean variable of the covariates given they are all zero:
+However, assuming the covariates are standardized z scores, as is done in standard practice before deriving the PC's, we can omit the mean variable of the covariates given they are all zero: 
 
-$$x_i=\beta z_i $$
+$$x_i=\beta z_i $$ 
 
-However, the probabilistic component comes in when we offset the above product of PC's and their scores with the mean of the covariates some noise.
+However, the probabilistic component comes in when we offset the above product of PC's and their scores with the mean of the covariates some noise. 
 
 $$x_i=\beta z_i+\mu_p+\epsilon_i, \epsilon\sim N(\bf0,\sigma^2\bf I_p)  $$
 
@@ -48,7 +48,7 @@ or more descriptively,
 
 $$ \begin{bmatrix}x_1\\x_2\\.\\.\\x_n  \end{bmatrix} =\begin{bmatrix}B_{11}\\B_{21}\\.\\.\\B_{p1} \end{bmatrix}z_1+\begin{bmatrix}B_{12}\\B_{22}\\.\\.\\B_{p2} \end{bmatrix}z_2+...+\begin{bmatrix}B_{1q}\\B_{2q}\\.\\.\\B_{pq} \end{bmatrix}z_q+\begin{bmatrix}\mu_1\\\mu_2\\.\\.\\\mu_p  \end{bmatrix}+\begin{bmatrix} \epsilon_1\\\epsilon_2\\.\\.\\ \epsilon_n  \end{bmatrix} $$
 
-### Data Simulation
+### Data Simulation 
 
 ```{r}
 #| label: load-packages
@@ -58,46 +58,44 @@ invisible(lapply(packages, library, character.only = T))
 
 
 ```
-
 #### Bayesian Framework
 
-This section simulates data based on previous determinations for $\beta$, $z$, and $mu$ for varying values of $q<p$. Within a bayesian framework the goal estimate the following posterior distribution.
 
-$$ P(z|x,\beta,\mu,\alpha) \propto P(x|\beta, z,\mu,\alpha)P(z)P(\beta|\alpha)P(\mu)$$ This is achieved if we assume the following distributions on the parameters and data:
+This section simulates data based on previous determinations for $\beta$, $z$, and $mu$ for varying values of $q<p$. Within a bayesian framework the goal estimate the following posterior distribution. 
+
+$$ P(z|x,\beta,\mu,\alpha) \propto P(x|\beta, z,\mu,\alpha)P(z)P(\beta|\alpha)P(\mu)$$
+
+This is achieved if we assume the following distributions on the parameters and data:
 
 $$\begin{align}
-x_i &\sim N(\mu, \beta \beta^T+\sigma^2 \bf I_p), \mu \sim N(0, \bf I_p)\\
-x_i | z_i &\sim N(\beta*z_i,\sigma^2 \bf I_p)\\
+x_i &\sim N(\beta*z_i, \sigma^2 \bf I_p),\mu \sim N(0,I_p)\\
 z_i &\sim N(\bf 0,I_q)\\
-\beta_q | \alpha_q &\sim N(\bf 0,\alpha^{-1}_q *\bf I_p)
-\end{align}$$
+\beta_q |\alpha_q &\sim N(\bf 0,\alpha^{-1}_q *\bf I_p)
+
+\end{align} $$
 
 ::: panel-tabset
-#### Using 1 PC
+
+####  Using 1 PC
 
 Simulating the data
-
 ```{r}
 #| message: false
 #| warning: false
-  
 `%>%` <- dplyr::`%>%`
-a= 1 # alpha for prior on the PC's
-b= 1 # beta for the prior on PC's
+a= 0.001 # alpha for prior on the PC's
+b= 0.001 # beta for the prior on PC's
 N <- 100 # number of subjects
 p <- 5 # number of covariates
 q <- 1 # number from reduced dim
-alpha = rgamma(1,shape =a,rate = b) # hyper prior for PC's
-B = matrix(rnorm(p*q,mean = 0, sd = 1/sqrt(alpha)), ncol = q) # PC Vectors
-log_z <- rnorm(q, sd = .15)#PC scores
-z <- exp(log_z) %>% sort(decreasing = F)
-x <- matrix(nrow = N, ncol = p)
+sigma <- 3
+alpha = rep(1,q)    # Component precisions for the two data sets
+z <-matrix(rnorm(N*q,0,1),N,q)    # Latent components
+B <- matrix(0,p,q)   # The weights
+for(j in 1:q)  B[,j] <- rnorm(p,0,1/sqrt(alpha[j]))
+x <- z %*% t(B) + matrix(rnorm(N*p,0,1/sqrt(sigma)),N,p)  
 
-for (i in 1:p) {
-  x[,i] = sum(B[i,]*z) + rnorm(N,0,1)
-  
-}
-
+data <- list(N = N, p = p, q = q, x = x, z=z, a = a, b= b)
 
 ```
 
@@ -107,27 +105,18 @@ Setting up Stan code
 #| message: false
 #| warning: false
 #| results: hide
-stan_list <- list(
-  N = N, 
-  a = a, 
-  b = b,
-  x = x,
-  p = p,
-  q= q
-)
 
 mod_file <- rstan::stan_model("bayes_stan.stan")
 
 fit <- rstan::vb(mod_file,
-                   data = stan_list#,
-                  # pars = c("preds","B","z")
-                   
+                   data = data
                    )
 
 output_tab <- rstan::summary(fit) %>% 
   data.frame() %>%
   rownames_to_column()  
 ```
+
 
 Comparing x to the predicted values
 
@@ -144,7 +133,7 @@ x_pred <-
         output_tab$summary.mean[grepl(c("preds"),output_tab$rowname)][301:400],
         output_tab$summary.mean[grepl(c("preds"),output_tab$rowname)][401:500])
 
-# creating combine variables
+# creating combined x and pred variables
 x_comp <- full_join(
 x %>% 
   as.data.frame() %>% 
@@ -168,9 +157,11 @@ x_comp %>%
   #geom_histogram(alpha = 0.3)+
   geom_density(alpha = 0.1)+
   facet_wrap(~covariates)
+
+
 ```
 
-Table of means for each covariate.
+Table of means for each covariate. 
 
 ```{r}
 #| message: false
@@ -180,59 +171,40 @@ Table of means for each covariate.
     group_by(name, covariates) %>% 
     summarize(mean = mean(observations)) %>% knitr::kable()
 
-# z compared to predicted z 
-tibble(z = mean(z),
-       pred_z = output_tab$summary.mean[grepl(c("z"),output_tab$rowname)]) %>% 
-  knitr::kable()
+
+
 ```
 
-#### Using 2 PC's
 
-Since $q$ is now greater than 1, we are using a ordering function on $z$. That kind of changes the distribution from a standard normal but a positively ordered standard normal vector of $q$ scores.
+####  Using 2 PC's
 
-::: callout-note
-Ordering the $z$ parameter also helps to map the predicted $z$ to the actually $z$ parameter for comparison.
+
+Since $q$ is now greater than 1, we should be using a ordering function on $z$??
+
+:::{.callout-note}
+Ordering the $z$ parameter were removed
 :::
+
 
 ```{r}
 #| message: false
 #| warning: false
 #| results: hide
   
-`%>%` <- dplyr::`%>%`
-a= 1 # alpha for prior on the PC's
-b= 1 # beta for the prior on PC's
-N <- 100 # number of subjects
-p <- 5 # number of covariates
+
 q <- 2 # number from reduced dim
-alpha = rgamma(1,shape =a,rate = b) # hyper prior for PC's
-B = matrix(rnorm(p*q,mean = 0, sd = 1/sqrt(alpha)), ncol = q)# PC Vectors
-log_z <- rnorm(q, sd = .15)#PC scores
-z <- exp(log_z) %>% sort(decreasing = F)
-mu <- rnorm(p,0,1)
-x <- matrix(nrow = N, ncol = p)
+alpha = rep(1,q)    # Component precisions for the two data sets
+z <-matrix(rnorm(N*q,0,1),N,q)    # Latent components
+B <- matrix(0,p,q)   # The weights
+for(j in 1:q)  B[,j] <- rnorm(p,0,1/sqrt(alpha[j]))
+x <- z %*% t(B) + matrix(rnorm(N*p,0,1/sqrt(sigma)),N,p)  
 
-for (i in 1:p) {
-  x[,i] = sum(B[i,]*z+mu[i]) + rnorm(N,0,1)
-  
-}
+data <- list(N = N, p = p, q = q, x = x, z=z, a = a, b= b)
 
-stan_list <- list(
-  N = N, 
-  a = a, 
-  b = b,
-  mu = mu,
-  x = x,
-  p = p,
-  q= q
-)
-
-mod_file <- rstan::stan_model("bayes_stan.stan")
 
 fit <- rstan::vb(mod_file,
-                   data = stan_list#,
-                  # pars = c("preds","B","z")
-                   
+                   data = data
+                
                    )
 
 output_tab <- rstan::summary(fit) %>% 
@@ -246,6 +218,27 @@ Comparing x to the predicted values
 #| message: false
 #| warning: false
 
+z.vb <- apply(extract(fit,"z")[[1]], c(1,2), mean)
+B.vb <- apply(extract(fit,"B")[[1]], c(2,3), mean)
+alpha.vb <- apply(extract(fit,"alpha")[[1]], c(2), mean)
+
+gplots::heatmap.2(z.vb, col = gplots::bluered(70), 
+                  dendrogram='none',
+                  trace='none', 
+                  Rowv = FALSE, 
+                  Colv = FALSE, 
+                  key=FALSE)
+
+gplots::heatmap.2(B.vb, col = gplots::bluered(70), 
+                  dendrogram='none',
+                  trace='none', 
+                  Rowv = FALSE, 
+                  Colv = FALSE, 
+                  key=FALSE)
+```
+
+
+```{r}
 # pred matrix
 
 x_pred <-  
@@ -279,9 +272,10 @@ x_comp %>%
   #geom_histogram(alpha = 0.3)+
   geom_density(alpha = 0.1)+
   facet_wrap(~covariates)
+
 ```
 
-Table of means for each covariate.
+Table of means for each covariate. 
 
 ```{r}
 #| message: false
@@ -291,58 +285,29 @@ Table of means for each covariate.
     group_by(name, covariates) %>% 
     summarize(mean = mean(observations)) %>% knitr::kable()
 
-# z compared to predicted z 
-tibble(z = z,
-       pred_z = output_tab$summary.mean[grepl(c("z"),output_tab$rowname)]) %>% 
-  knitr::kable()
-
 ```
 
-#### Using p-1 PC's
+####  Using p-1 PC's
 
-This tab looks at the min amount of data reduction for this dataset.
+This tab looks at the min amount of data reduction for this dataset. 
 
-::: callout-note
-The $z$ parameters are still ordered
-:::
 
 ```{r}
 #| message: false
 #| warning: false
 #| results: hide
   
-`%>%` <- dplyr::`%>%`
-a= 1 # alpha for prior on the PC's
-b= 1 # beta for the prior on PC's
-N <- 100 # number of subjects
-p <- 5 # number of covariates
+
 q <- p-1 # number from reduced dim
-alpha = rgamma(1,shape =a,rate = b) # hyper prior for PC's
-B = matrix(rnorm(p*q,mean = 0, sd = 1/sqrt(alpha)), ncol = q)# PC Vectors
-log_z <- rnorm(q, sd = .15)#PC scores
-z <- exp(log_z) %>% sort(decreasing = F)
-x <- matrix(nrow = N, ncol = p)
-
-for (i in 1:p) {
-  x[,i] = sum(B[i,]*z) + rnorm(N,0,1)
-  
-}
-
-stan_list <- list(
-  N = N, 
-  a = a, 
-  b = b,
-  x = x,
-  p = p,
-  q= q
-)
-
-mod_file <- rstan::stan_model("bayes_stan.stan")
+alpha = rep(1,q)    # Component precisions for the two data sets
+z <-matrix(rnorm(N*q,0,1),N,q)    # Latent components
+B <- matrix(0,p,q)   # The weights
+for(j in 1:q)  B[,j] <- rnorm(p,0,1/sqrt(alpha[j]))
+x <- z %*% t(B) + matrix(rnorm(N*p,0,1/sqrt(sigma)),N,p)  
+data <- list(N = N, p = p, q = q, x = x, z=z, a = a, b= b)
 
 fit <- rstan::vb(mod_file,
-                   data = stan_list#,
-                  # pars = c("preds","B","z")
-                   
+                   data = data
                    )
 
 output_tab <- rstan::summary(fit) %>% 
@@ -350,6 +315,28 @@ output_tab <- rstan::summary(fit) %>%
   rownames_to_column()  
 ```
 
+```{r}
+#| message: false
+#| warning: false
+
+z.vb <- apply(extract(fit,"z")[[1]], c(1,2), mean)
+B.vb <- apply(extract(fit,"B")[[1]], c(2,3), mean)
+alpha.vb <- apply(extract(fit,"alpha")[[1]], c(2), mean)
+
+gplots::heatmap.2(z.vb, col = gplots::bluered(70), 
+                  dendrogram='none',
+                  trace='none', 
+                  Rowv = FALSE, 
+                  Colv = FALSE, 
+                  key=FALSE)
+
+gplots::heatmap.2(B.vb, col = gplots::bluered(70), 
+                  dendrogram='none',
+                  trace='none', 
+                  Rowv = FALSE, 
+                  Colv = FALSE, 
+                  key=FALSE)
+```
 Comparing x to the predicted values
 
 ```{r}
@@ -389,11 +376,9 @@ x_comp %>%
   #geom_histogram(alpha = 0.3)+
   geom_density(alpha = 0.1)+
   facet_wrap(~covariates)
-
-
 ```
 
-Table of means for each covariate.
+Table of means for each covariate. 
 
 ```{r}
 #| message: false
@@ -403,10 +388,7 @@ Table of means for each covariate.
     group_by(name, covariates) %>% 
     summarize(mean = mean(observations)) %>% knitr::kable()
 
-# z compared to predicted z 
-tibble(z = z,
-       pred_z = output_tab$summary.mean[grepl(c("z"),output_tab$rowname)]) %>% 
-  knitr::kable()
-
 ```
+
 :::
+

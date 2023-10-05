@@ -17,57 +17,60 @@ data {
   matrix[N,p] x;//design matrix
   real a;
   real b;
-}transformed data{ //standardizes the data in case it isn't 
-  
-  vector[p] x_means;
-  vector[p] x_sds;
-  matrix[N,p] x_norm;
-  
-  for(i in 1:p){
-    x_means[i] = mean(x[:,i]);
-    x_sds[i] = sd(x[:,i]);
-    x_norm[:,i] = (x[:,i] - x_means[i])/x_sds[i];
-  }
 }
+//transformed data{ //standardizes the data in case it isn't
 
-// The parameters accepted by the model. Our model
-// accepts two parameters 'mu' and 'sigma'.
+//  vector[p] x_means;
+//  vector[p] x_sds;
+//  matrix[N,p] x_norm;
+
+//  for(i in 1:p){
+//    x_means[i] = mean(x[:,i]);
+//    x_sds[i] = sd(x[:,i]);
+//    x_norm[:,i] = (x[:,i] - x_means[i])/x_sds[i];
+//  }
+//}
+
+// The parameters accepted by the model.
 parameters {
   vector[p] mu;
-  matrix[p,q] B; 
+  matrix[p,q] B;
   real<lower=0> sigma;
   positive_ordered[q] z; // the first will be the smallest
   vector<lower = 0>[q] alpha;
-  
-}
 
+}
+transformed parameters {
+  vector<lower=0>[q] t_alpha;
+  t_alpha = inv(sqrt(alpha));
+}
 
 // The model to be estimated. We model the output
 // 'y' to be normally distributed with mean 'mu'
 // and standard deviation 'sigma'.
 model {
-  
+
   vector[p] mus;
-  
-  mus = B*z;
-  
+
+  mus = B*z+mu;
+
   for(i in 1:p){ // c++ prefers column wise operations
-  x_norm[,i] ~ normal(mus[i],sigma ); // identity matrix implied; not includeding mean assuming standardization everywhere
+  x[,i] ~ normal(mus[i],sigma ); // identity matrix implied
   }
-  
   alpha ~ gamma(a,b);
-  z ~ normal(0,1); // identity matrix explained 
+  z ~ normal(0,1); // identity matrix explained
+  mu ~ normal(0,1);
   for(i in 1:q){
-  B[,i] ~ normal(0,alpha[i]);
+  B[,i] ~ normal(0,t_alpha[i]);
   }
 }generated quantities{
   matrix[N,p] preds;
-  
+
   for(i in 1:p){
     for(j in 1:N){
-    preds[j,i] = normal_rng(B[i,:]*z,sigma);
+    preds[j,i] = normal_rng((B[i,:]*z+mu[i]),sigma);
     }
   }
-  
+
 }
 
