@@ -48,18 +48,8 @@ or more descriptively,
 
 $$ \begin{bmatrix}x_1\\x_2\\.\\.\\x_n  \end{bmatrix} =\begin{bmatrix}B_{11}\\B_{21}\\.\\.\\B_{p1} \end{bmatrix}z_1+\begin{bmatrix}B_{12}\\B_{22}\\.\\.\\B_{p2} \end{bmatrix}z_2+...+\begin{bmatrix}B_{1q}\\B_{2q}\\.\\.\\B_{pq} \end{bmatrix}z_q+\begin{bmatrix}\mu_1\\\mu_2\\.\\.\\\mu_p  \end{bmatrix}+\begin{bmatrix} \epsilon_1\\\epsilon_2\\.\\.\\ \epsilon_n  \end{bmatrix} $$
 
-### Data Simulation
 
-```{r}
-#| label: load-packages
-#| message: false
-packages <- c("tidyverse","patchwork","rstan")
-invisible(lapply(packages, library, character.only = T))
-
-
-```
-
-#### Bayesian Framework
+### Bayesian Framework
 
 This section simulates data based on previous determinations for $\beta$, $z$, and $mu$ for varying values of $q<p$. Within a bayesian framework the goal estimate the following posterior distribution.
 
@@ -71,6 +61,18 @@ x_i | z_i &\sim N(\beta*z_i,\sigma^2 \bf I_p)\\
 z_i &\sim N(\bf 0,I_q)\\
 \beta_q | \alpha_q &\sim N(\bf 0,\alpha^{-1}_q *\bf I_p)
 \end{align}$$
+
+
+### Data Simulation
+
+```{r}
+#| label: load-packages
+#| message: false
+packages <- c("tidyverse","patchwork","rstan")
+invisible(lapply(packages, library, character.only = T))
+
+
+```
 
 ::: panel-tabset
 #### Using 1 PC
