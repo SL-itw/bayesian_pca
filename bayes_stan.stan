@@ -35,14 +35,14 @@ data {
 parameters {
   vector[p] mu;
   matrix[p,q] B;
-  real<lower=0> sigma;
-  positive_ordered[q] z; // the first will be the smallest
-  vector<lower = 0>[q] alpha;
+  //real<lower=0> sigma;
+  matrix[N,q] z; // the first will be the smallest
+  vector<lower = 0>[q] lambda;
 
 }
 transformed parameters {
-  vector<lower=0>[q] t_alpha;
-  t_alpha = inv(sqrt(alpha));
+  vector<lower=0>[q] t_lambda;
+  t_lambda = inv(sqrt(lambda));
 }
 
 // The model to be estimated. We model the output
@@ -50,27 +50,36 @@ transformed parameters {
 // and standard deviation 'sigma'.
 model {
 
-  vector[p] mus;
+   // sigma ~ gamma(1,1);
+		to_vector(z) ~ normal(0,1);
+	//	lambda ~ gamma(a,b);
+	//	for(j in 1:q) B[,j] ~ normal(0, t_lambda[j]);
 
-  mus = B*z+mu;
 
-  for(i in 1:p){ // c++ prefers column wise operations
-  x[,i] ~ normal(mus[i],sigma ); // identity matrix implied
-  }
-  alpha ~ gamma(a,b);
-  z ~ normal(0,1); // identity matrix explained
-  mu ~ normal(0,1);
+  lambda ~ gamma(a,b);
   for(i in 1:q){
-  B[,i] ~ normal(0,t_alpha[i]);
+  z[i,] ~ normal(0,1); // identity matrix explained
   }
+   mu ~ normal(0,1);
+   for(i in 1:q){
+   B[,i] ~ normal(0,t_lambda[i]);
+  }
+
+ // for(i in 1:p){ // c++ prefers column wise operations
+ // x[,i] ~ normal(B[i,:]*z+mu[i], 1 ); // identity matrix implied
+ // }
+
+  		to_vector(x) ~ normal(to_vector(z*B'), 1);
+
 }generated quantities{
   matrix[N,p] preds;
 
   for(i in 1:p){
     for(j in 1:N){
-    preds[j,i] = normal_rng((B[i,:]*z+mu[i]),sigma);
+    preds[j,i] = normal_rng((B[i,:]*z[j]'),1);
     }
   }
 
 }
+
 
